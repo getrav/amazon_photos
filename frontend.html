@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Photos Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cookie-section {
+            margin-bottom: 2rem;
+        }
+
+        .cookie-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .cookie-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .button.secondary {
+            background: #6c757d;
+        }
+
+        .button.danger {
+            background: #dc3545;
+        }
+
+        .status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .progress-container {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .photo-item {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .photo-item:hover {
+            transform: translateY(-4px);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .photo-info {
+            padding: 0.8rem;
+        }
+
+        .photo-name {
+            font-size: 0.9rem;
+            color: #333;
+            margin-bottom: 0.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .photo-size {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .instructions {
+            background: #e8f4f8;
+            border-left: 4px solid #17a2b8;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .instructions h3 {
+            color: #0c5460;
+            margin-bottom: 0.5rem;
+        }
+
+        .instructions ol {
+            margin-left: 1.5rem;
+            color: #0c5460;
+        }
+
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1000;
+        }
+
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .connection-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">Connecting...</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📸 Amazon Photos Downloader</h1>
+            <p>Rescue your Amazon Photos with ease</p>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                🍪 Step 1: Cookie Setup
+            </div>
+            
+            <div class="instructions">
+                <h3>How to get your Amazon Photos cookies:</h3>
+                <ol>
+                    <li>Open Amazon Photos in your browser and log in</li>
+                    <li>Press F12 to open Developer Tools</li>
+                    <li>Go to the "Application" tab (Chrome) or "Storage" tab (Firefox)</li>
+                    <li>Find "Cookies" → "https://www.amazon.com"</li>
+                    <li>Copy the cookie values below and paste them in the text area</li>
+                </ol>
+            </div>
+
+            <div class="cookie-section">
+                <textarea 
+                    id="cookieInput" 
+                    class="cookie-input" 
+                    placeholder="Paste your Amazon cookies here as JSON:
+{
+  &quot;session-id&quot;: &quot;your-session-id&quot;,
+  &quot;session-id-time&quot;: &quot;your-session-id-time&quot;,
+  &quot;session-token&quot;: &quot;your-session-token&quot;,
+  &quot;ubid-main&quot;: &quot;your-ubid-main&quot;,
+  &quot;x-main&quot;: &quot;your-x-main&quot;
+}"
+                ></textarea>
+                
+                <div style="margin-top: 1rem;">
+                    <button class="button" onclick="validateCookies()">
+                        🔍 Validate Cookies
+                    </button>
+                    <button class="button secondary" onclick="extractCookies()">
+                        🎯 Auto-Extract Cookies
+                    </button>
+                </div>
+            </div>
+
+            <div id="cookieStatus" class="status"></div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                ⬇️ Step 2: Download Photos
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="downloadPath" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                    Download Path (optional):
+                </label>
+                <input 
+                    type="text" 
+                    id="downloadPath" 
+                    value="./downloads"
+                    style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px;"
+                    placeholder="./downloads"
+                >
+            </div>
+            
+            <button class="button" id="startDownload" onclick="startDownload()" disabled>
+                📥 Start Download
+            </button>
+            <button class="button danger" id="stopDownload" onclick="stopDownload()" disabled style="display: none;">
+                ⏹️ Stop Download
+            </button>
+
+            <div id="progressContainer" class="progress-container">
+                <div class="progress-text" id="progressText">Preparing download...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressDetails">0 / 0 photos downloaded</div>
+            </div>
+
+            <div id="downloadStatus" class="status"></div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                🖼️ Downloaded Photos Gallery
+            </div>
+            
+            <button class="button secondary" onclick="refreshGallery()">
+                🔄 Refresh Gallery
+            </button>
+            
+            <div id="gallery" class="gallery">
+                <!-- Photos will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let cookiesValid = false;
+
+        // WebSocket connection
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                updateConnectionStatus('connected');
+            };
+            
+            ws.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                handleWebSocketMessage(message);
+            };
+            
+            ws.onclose = function() {
+                updateConnectionStatus('disconnected');
+                // Attempt to reconnect after 3 seconds
+                setTimeout(connectWebSocket, 3000);
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus('disconnected');
+            };
+        }
+
+        function updateConnectionStatus(status) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = `connection-status ${status}`;
+            statusEl.textContent = status === 'connected' ? '🟢 Connected' : '🔴 Disconnected';
+        }
+
+        function handleWebSocketMessage(message) {
+            const { type, data } = message;
+            
+            switch(type) {
+                case 'progress':
+                    updateProgress(data);
+                    break;
+                case 'status':
+                    updateStatus(data);
+                    break;
+                case 'complete':
+                    downloadComplete(data);
+                    break;
+                case 'error':
+                    showError(data.message);
+                    break;
+            }
+        }
+
+        function updateProgress(data) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressText = document.getElementById('progressText');
+            const progressFill = document.getElementById('progressFill');
+            const progressDetails = document.getElementById('progressDetails');
+            
+            progressContainer.style.display = 'block';
+            progressText.textContent = `Downloading: ${data.current}`;
+            progressFill.style.width = `${data.progress}%`;
+            progressDetails.textContent = `${data.downloaded} / ${data.total} photos downloaded`;
+        }
+
+        function updateStatus(data) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressText = document.getElementById('progressText');
+            
+            if (data.stage === 'fetching') {
+                progressContainer.style.display = 'block';
+                progressText.textContent = data.message;
+            } else if (data.stage === 'downloading') {
+                progressContainer.style.display = 'block';
+                progressText.textContent = data.message;
+            }
+        }
+
+        function downloadComplete(data) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const progressDetails = document.getElementById('progressDetails');
+            
+            progressFill.style.width = '100%';
+            progressText.textContent = data.message;
+            progressDetails.textContent = `${data.downloaded} photos downloaded successfully`;
+            
+            if (data.errors && data.errors.length > 0) {
+                showError(`Download completed with ${data.errors.length} errors. Check console for details.`);
+                console.error('Download errors:', data.errors);
+            } else {
+                showSuccess(data.message);
+            }
+            
+            // Reset buttons
+            document.getElementById('startDownload').disabled = false;
+            document.getElementById('stopDownload').style.display = 'none';
+            
+            // Refresh gallery
+            setTimeout(refreshGallery, 1000);
+        }
+
+        function showStatus(message, type) {
+            const statusElements = ['cookieStatus', 'downloadStatus'];
+            statusElements.forEach(id => {
+                const el = document.getElementById(id);
+                el.textContent = message;
+                el.className = `status ${type}`;
+                el.style.display = 'block';
+            });
+        }
+
+        function showSuccess(message) {
+            showStatus(message, 'success');
+        }
+
+        function showError(message) {
+            showStatus(message, 'error');
+        }
+
+        function showInfo(message) {
+            showStatus(message, 'info');
+        }
+
+        async function extractCookies() {
+            try {
+                showInfo('Attempting to extract cookies from current domain...');
+                
+                const cookies = {};
+                const cookieString = document.cookie;
+                
+                if (!cookieString) {
+                    showError('No cookies found. Please make sure you are logged into Amazon Photos in this browser.');
+                    return;
+                }
+                
+                cookieString.split(';').forEach(cookie => {
+                    const [name, value] = cookie.trim().split('=');
+                    if (name && value) {
+                        cookies[name] = value;
+                    }
+                });
+                
+                document.getElementById('cookieInput').value = JSON.stringify(cookies, null, 2);
+                showSuccess('Cookies extracted! Please validate them before downloading.');
+                
+            } catch (error) {
+                showError('Failed to extract cookies: ' + error.message);
+            }
+        }
+
+        async function validateCookies() {
+            const cookieInput = document.getElementById('cookieInput').value.trim();
+            
+            if (!cookieInput) {
+                showError('Please enter your Amazon Photos cookies first.');
+                return;
+            }
+            
+            let cookies;
+            try {
+                cookies = JSON.parse(cookieInput);
+            } catch (error) {
+                showError('Invalid JSON format. Please check your cookie data.');
+                return;
+            }
+            
+            showInfo('Validating cookies...');
+            
+            try {
+                const response = await fetch('/api/validate-cookies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ cookies })
+                });
+                
+                const result = await response.json();
+                
+                if (result.valid) {
+                    showSuccess('Cookies are valid! You can now start downloading.');
+                    cookiesValid
