@@ -99,6 +99,55 @@ The web application requires your Amazon Photos session cookies to interact with
 3.  **Monitor Progress:** Download progress will be displayed.
 4.  **View Gallery:** Once downloads are complete (or partially complete), click "Refresh Gallery" to view your media. Use the "Previous" and "Next" buttons to navigate through your gallery.
 
+### Running with Docker
+
+Alternatively, you can run the web application using Docker. This encapsulates the application and its dependencies in a container.
+
+**1. Prerequisites:**
+*   Ensure you have Docker installed on your system.
+
+**2. Building the Docker Image:**
+*   Navigate to the root directory of the project (where the `Dockerfile` is located).
+*   Run the following command to build the Docker image:
+    ```bash
+    docker build -t amazon-photos-web .
+    ```
+
+**3. Running the Docker Container:**
+*   To run the container, you'll want to mount volumes from your host machine into the container. This is crucial for:
+    *   Persisting the downloaded media: The `media_downloads` directory where photos and videos are saved.
+    *   Persisting the application's database: The `ap.parquet` file which stores metadata.
+*   Use the following command to run the container:
+    ```bash
+    docker run -d \
+      -p 8000:8000 \
+      -v ./media_downloads:/app/media_downloads \
+      -v ./ap.parquet:/app/ap.parquet \
+      --name amazon-photos-app \
+      amazon-photos-web
+    ```
+    *   **Explanation of the command:**
+        *   `-d`: Runs the container in detached mode (in the background).
+        *   `-p 8000:8000`: Maps port 8000 on your host machine to port 8000 in the container.
+        *   `-v ./media_downloads:/app/media_downloads`: Mounts the local `./media_downloads` directory (create this directory if it doesn't exist) into the `/app/media_downloads` directory inside the container. The application saves downloaded files here.
+        *   `-v ./ap.parquet:/app/ap.parquet`: Mounts a local file named `ap.parquet` into `/app/ap.parquet` inside the container.
+            *   **Note on `ap.parquet`:** If `ap.parquet` does not exist locally before running the `docker run` command, Docker might create it as a directory, which can cause issues. It's best to ensure an empty `ap.parquet` file exists locally first (e.g., by running `touch ap.parquet` on Linux/macOS or creating an empty file on Windows) or after the first run of the application (without Docker) which would generate it. The application expects this path for its database.
+        *   `--name amazon-photos-app`: Assigns a memorable name to your container.
+        *   `amazon-photos-web`: Specifies the Docker image to use (the one you built earlier).
+
+*   **Accessing the Application:**
+    Once the container is running, you can access the web application in your browser at `http://localhost:8000`.
+
+**4. Stopping and Removing the Container (Optional):**
+*   To stop the container:
+    ```bash
+    docker stop amazon-photos-app
+    ```
+*   To remove the container (after it's stopped):
+    ```bash
+    docker rm amazon-photos-app
+    ```
+
 ### Output Examples
 
 `ap.db`
