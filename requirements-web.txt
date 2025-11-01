@@ -1,0 +1,7 @@
+# Additional requirements for the web interface (server.py)
+# Install with: pip install -r requirements-web.txt
+
+flask>=2.3.0
+flask-cors>=4.0.0
+flask-socketio>=5.3.0
+python-socketio>=5.9.0
